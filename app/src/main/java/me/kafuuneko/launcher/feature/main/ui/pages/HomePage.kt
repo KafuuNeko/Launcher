@@ -1,0 +1,337 @@
+package me.kafuuneko.launcher.feature.main.ui.pages
+
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import me.kafuuneko.launcher.feature.main.presentation.MainUiIntent
+import me.kafuuneko.launcher.feature.main.presentation.MainUiState
+import me.kafuuneko.launcher.libs.model.AppInfo
+import java.time.format.DateTimeFormatter
+
+/**
+ * 主页组件
+ * 包含：时间显示、搜索框、最近使用的应用、功能入口
+ */
+@Composable
+fun HomePage(
+    uiState: MainUiState.Normal,
+    emitIntent: (MainUiIntent) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                        MaterialTheme.colorScheme.surface
+                    )
+                )
+            )
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(24.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            // 时间显示
+            item {
+                TimeDisplay(uiState)
+            }
+
+            // 搜索框
+            item {
+                SearchBox(uiState, emitIntent)
+            }
+
+            // 最近使用的应用标题
+            if (uiState.recentApps.isNotEmpty()) {
+                item {
+                    Text(
+                        text = "最近使用",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier.padding(bottom = 16.dp),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                // 最近使用的应用列表
+                items(uiState.recentApps, key = { it.packageName }) { app ->
+                    RecentAppItem(
+                        app = app,
+                        onClick = { emitIntent(MainUiIntent.AppClick(app.packageName)) },
+                        onLongClick = { emitIntent(MainUiIntent.AppLongClick(app.packageName)) }
+                    )
+                }
+            }
+
+            // 功能入口
+            item {
+                QuickActions(emitIntent)
+            }
+
+            // 底部占位
+            item {
+                Spacer(modifier = Modifier.height(80.dp))
+            }
+        }
+    }
+}
+
+/**
+ * 时间显示组件
+ */
+@Composable
+private fun TimeDisplay(uiState: MainUiState.Normal) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 32.dp, bottom = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+        val dateFormatter = DateTimeFormatter.ofPattern("yyyy年MM月dd日 EEEE")
+
+        Text(
+            text = uiState.currentTime.format(timeFormatter),
+            style = MaterialTheme.typography.displayLarge.copy(
+                fontSize = 72.sp,
+                fontWeight = FontWeight.Bold
+            ),
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = uiState.currentTime.format(dateFormatter),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+        )
+    }
+}
+
+/**
+ * 搜索框组件
+ */
+@Composable
+private fun SearchBox(
+    uiState: MainUiState.Normal,
+    emitIntent: (MainUiIntent) -> Unit
+) {
+    OutlinedTextField(
+        value = uiState.searchQuery,
+        onValueChange = { query ->
+            emitIntent(MainUiIntent.SearchQueryChange(query))
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp),
+        placeholder = {
+            Text("搜索应用...")
+        },
+        leadingIcon = {
+            Icon(Icons.Default.Search, contentDescription = "搜索")
+        },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(
+            onSearch = {
+                // 搜索逻辑自动触发，无需额外处理
+            }
+        ),
+        shape = RoundedCornerShape(24.dp),
+        textStyle = MaterialTheme.typography.bodyLarge
+    )
+}
+
+
+/**
+ * 最近应用项
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun RecentAppItem(
+    app: AppInfo,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // 应用图标
+            androidx.compose.foundation.Image(
+                painter = coil.compose.rememberAsyncImagePainter(app.icon),
+                contentDescription = app.name.toString(),
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // 应用名称
+            Text(
+                text = app.name.toString(),
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = FontWeight.Medium
+                ),
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+/**
+ * 快捷功能入口
+ */
+@Composable
+private fun QuickActions(emitIntent: (MainUiIntent) -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = "快捷功能",
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.Bold
+            ),
+            modifier = Modifier.padding(bottom = 16.dp),
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+
+            QuickActionCard(
+                title = "信息",
+                icon = null,
+                onClick = {
+                    emitIntent(MainUiIntent.NavigateToPage(me.kafuuneko.launcher.feature.main.presentation.PageType.INFO))
+                },
+                modifier = Modifier.weight(1f)
+            )
+
+            QuickActionCard(
+                title = "所有应用",
+                icon = null,
+                onClick = {
+                    emitIntent(MainUiIntent.NavigateToPage(me.kafuuneko.launcher.feature.main.presentation.PageType.ALL_APPS))
+                },
+                modifier = Modifier.weight(1f)
+            )
+
+            QuickActionCard(
+                title = "更多",
+                icon = null,
+                onClick = {
+                    emitIntent(MainUiIntent.NavigateToPage(me.kafuuneko.launcher.feature.main.presentation.PageType.MORE))
+                },
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+/**
+ * 快捷功能卡片
+ */
+@Composable
+private fun QuickActionCard(
+    title: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector?,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .height(100.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+        )
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                if (icon != null) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = title,
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+}

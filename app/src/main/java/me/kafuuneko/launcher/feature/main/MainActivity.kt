@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import me.kafuuneko.launcher.feature.main.presentation.MainUiIntent
 import me.kafuuneko.launcher.feature.main.presentation.MainUiState
 import me.kafuuneko.launcher.feature.main.presentation.MainViewEvent
+import me.kafuuneko.launcher.feature.main.presentation.PageType
 import me.kafuuneko.launcher.feature.main.ui.MainLayout
 import me.kafuuneko.launcher.libs.core.CoreActivityWithEvent
 import me.kafuuneko.launcher.libs.core.IViewEvent
@@ -29,7 +30,15 @@ class MainActivity : CoreActivityWithEvent() {
             mViewModel.emit(MainUiIntent.Init)
         }
 
-        BackHandler { moveTaskToBack(false) }
+        BackHandler {
+            when (val state = uiState) {
+                is MainUiState.Normal -> {
+                    if (state.currentPage != PageType.HOME) mViewModel.emit(MainUiIntent.GoBack)
+                }
+
+                else -> Unit
+            }
+        }
 
         MainLayout(
             uiState = uiState,

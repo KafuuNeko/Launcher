@@ -14,4 +14,21 @@ sealed class MainUiIntent {
     data object OpenSettings : MainUiIntent()
 
     data object ChangeWallpaper : MainUiIntent()
+
+    // 页面切换
+    data class NavigateToPage(val page: PageType) : MainUiIntent()
+
+    data object GoBack : MainUiIntent()
+
+    // 搜索
+    data class SearchQueryChange(val query: String) : MainUiIntent()
+
+    // 手势操作
+    data object SwipeLeft : MainUiIntent()
+
+    data object SwipeRight : MainUiIntent()
+
+    data object SwipeDown : MainUiIntent()
+
+    data object SwipeUp : MainUiIntent()
 }
