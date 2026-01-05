@@ -9,6 +9,7 @@ import androidx.core.net.toUri
 import me.kafuuneko.launcher.feature.main.presentation.MainUiIntent
 import me.kafuuneko.launcher.feature.main.presentation.MainUiState
 import me.kafuuneko.launcher.feature.main.presentation.MainViewEvent
+import me.kafuuneko.launcher.libs.AppLibs
 import me.kafuuneko.launcher.libs.core.AppViewEvent
 import me.kafuuneko.launcher.libs.core.CoreViewModelWithEvent
 import me.kafuuneko.launcher.libs.core.UiIntentObserver
@@ -20,6 +21,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
     initStatus = MainUiState.Loading
 ), KoinComponent {
     private val mContext by inject<Context>()
+    private val mAppLibs by inject<AppLibs>()
 
     /**
      * 获取已安装的应用列表
