@@ -29,7 +29,7 @@ fun MorePage(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface),
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)),
         contentAlignment = Alignment.Center
     ) {
         Column(

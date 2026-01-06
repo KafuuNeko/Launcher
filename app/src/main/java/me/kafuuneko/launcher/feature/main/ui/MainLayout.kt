@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import me.kafuuneko.launcher.feature.main.presentation.MainUiIntent
 import me.kafuuneko.launcher.feature.main.presentation.MainUiState
@@ -32,7 +33,7 @@ fun MainLayout(
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.surface
+        color = Color.Transparent
     ) {
         when (uiState) {
             is MainUiState.Loading -> LoadingView()
