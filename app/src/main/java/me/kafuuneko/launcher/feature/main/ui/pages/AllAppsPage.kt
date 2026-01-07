@@ -73,10 +73,8 @@ fun AllAppsPage(
                             onVerticalDrag = { change, dragAmount ->
                                 change.consume() // 消费事件，防止传递给下层
 
-                                // 只响应向下的拖动（dragAmount > 0）
-                                if (dragAmount > 0) {
-                                    onTopBarDrag(dragAmount)
-                                }
+                                // 响应所有方向的拖动，允许用户往回拖动
+                                onTopBarDrag(dragAmount)
                             },
                             onDragEnd = {
                                 onTopBarDragEnd()
