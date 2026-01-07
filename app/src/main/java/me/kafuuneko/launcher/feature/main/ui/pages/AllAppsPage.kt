@@ -3,6 +3,7 @@ package me.kafuuneko.launcher.feature.main.ui.pages
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +30,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -44,6 +46,8 @@ import me.kafuuneko.launcher.libs.model.AppInfo
 fun AllAppsPage(
     uiState: MainUiState.Normal,
     emitIntent: (MainUiIntent) -> Unit,
+    onTopBarDrag: ((Float) -> Unit)? = null,
+    onTopBarDragEnd: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -61,6 +65,30 @@ fun AllAppsPage(
             },
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+            ),
+            modifier = Modifier.then(
+                if (onTopBarDrag != null && onTopBarDragEnd != null) {
+                    Modifier.pointerInput(Unit) {
+                        detectVerticalDragGestures(
+                            onVerticalDrag = { change, dragAmount ->
+                                change.consume() // 消费事件，防止传递给下层
+
+                                // 只响应向下的拖动（dragAmount > 0）
+                                if (dragAmount > 0) {
+                                    onTopBarDrag(dragAmount)
+                                }
+                            },
+                            onDragEnd = {
+                                onTopBarDragEnd()
+                            },
+                            onDragCancel = {
+                                onTopBarDragEnd()
+                            }
+                        )
+                    }
+                } else {
+                    Modifier
+                }
             )
         )
 

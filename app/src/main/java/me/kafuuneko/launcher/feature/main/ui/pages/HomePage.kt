@@ -1,9 +1,12 @@
 package me.kafuuneko.launcher.feature.main.ui.pages
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,10 +35,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -50,12 +61,25 @@ import java.time.format.DateTimeFormatter
  * 主页组件
  * 包含：时间显示、搜索框、最近使用的应用、功能入口
  */
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomePage(
     uiState: MainUiState.Normal,
     emitIntent: (MainUiIntent) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val density = LocalDensity.current
+
+    // 获取屏幕高度
+    val screenHeight = with(density) {
+        androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp.toPx()
+    }
+
+    // 跟踪向上拖动的距离
+    var upwardDragOffset by remember { mutableFloatStateOf(0f) }
+    // 是否已经触发导航
+    var navigationTriggered by remember { mutableStateOf(false) }
+
     Box(
         modifier = modifier.fillMaxSize()
     ) {
@@ -115,12 +139,53 @@ fun HomePage(
                 Spacer(modifier = Modifier.height(80.dp))
             }
         }
+
+        // 透明的手势检测层
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectVerticalDragGestures(
+                        onVerticalDrag = { change, dragAmount ->
+                            // 不 consume 事件，让 LazyColumn 也能滚动
+
+                            // 只响应向上的拖动（dragAmount < 0）
+                            if (dragAmount < 0 && !navigationTriggered) {
+                                upwardDragOffset += -dragAmount
+
+                                // 如果拖动超过阈值，触发打开应用列表
+                                if (upwardDragOffset > screenHeight * 0.2f) {
+                                    navigationTriggered = true
+                                    emitIntent(
+                                        MainUiIntent.NavigateToPage(
+                                            me.kafuuneko.launcher.feature.main.presentation.PageType.ALL_APPS
+                                        )
+                                    )
+                                }
+                            } else if (dragAmount > 0) {
+                                // 向下拖动时，减少偏移量
+                                upwardDragOffset = maxOf(0f, upwardDragOffset - dragAmount)
+                            }
+                        },
+                        onDragEnd = {
+                            // 拖动结束时重置偏移量和触发标志
+                            upwardDragOffset = 0f
+                            navigationTriggered = false
+                        },
+                        onDragCancel = {
+                            upwardDragOffset = 0f
+                            navigationTriggered = false
+                        }
+                    )
+                }
+        )
     }
 }
 
 /**
  * 时间显示组件
  */
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun TimeDisplay(uiState: MainUiState.Normal) {
     Column(
