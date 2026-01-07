@@ -46,80 +46,78 @@ fun AllAppsPage(
     emitIntent: (MainUiIntent) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(modifier = modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            // 顶部提示栏
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "所有应用",
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Bold
-                        )
+    Column(
+        modifier = modifier.fillMaxSize()
+    ) {
+        // 顶部提示栏
+        TopAppBar(
+            title = {
+                Text(
+                    text = "所有应用",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold
                     )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
                 )
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
             )
+        )
 
-            // 应用列表
-            if (uiState.filteredApps.isEmpty()) {
-                // 空状态
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surface),
-                    contentAlignment = Alignment.Center
+        // 应用列表
+        if (uiState.filteredApps.isEmpty()) {
+            // 空状态
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Menu,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = if (uiState.searchQuery.isEmpty()) {
-                                "暂无应用"
-                            } else {
-                                "未找到匹配的应用"
-                            },
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Menu,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = if (uiState.searchQuery.isEmpty()) {
+                            "暂无应用"
+                        } else {
+                            "未找到匹配的应用"
+                        },
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
                 }
-            } else {
-                // 应用网格
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(4),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surface),
-                    contentPadding = PaddingValues(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(
-                        items = uiState.filteredApps,
-                        key = { it.packageName }
-                    ) { app ->
-                        AppGridItem(
-                            app = app,
-                            onClick = {
-                                emitIntent(MainUiIntent.AppClick(app.packageName))
-                            },
-                            onLongClick = {
-                                emitIntent(MainUiIntent.AppLongClick(app.packageName))
-                            }
-                        )
-                    }
+            }
+        } else {
+            // 应用网格
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(4),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface),
+                contentPadding = PaddingValues(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(
+                    items = uiState.filteredApps,
+                    key = { it.packageName }
+                ) { app ->
+                    AppGridItem(
+                        app = app,
+                        onClick = {
+                            emitIntent(MainUiIntent.AppClick(app.packageName))
+                        },
+                        onLongClick = {
+                            emitIntent(MainUiIntent.AppLongClick(app.packageName))
+                        }
+                    )
                 }
             }
         }
@@ -139,8 +137,7 @@ private fun AppGridItem(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-            .padding(12.dp),
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {

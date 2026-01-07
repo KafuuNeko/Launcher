@@ -17,11 +17,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
@@ -81,18 +82,26 @@ fun HomePage(
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold
                         ),
-                        modifier = Modifier.padding(bottom = 16.dp),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
-                // 最近使用的应用列表
-                items(uiState.recentApps, key = { it.packageName }) { app ->
-                    RecentAppItem(
-                        app = app,
-                        onClick = { emitIntent(MainUiIntent.AppClick(app.packageName)) },
-                        onLongClick = { emitIntent(MainUiIntent.AppLongClick(app.packageName)) }
-                    )
+                // 最近使用的应用列表 - 横向滚动
+                item {
+                    val scrollState = rememberScrollState()
+                    Row(
+                        modifier = Modifier
+                            .horizontalScroll(scrollState),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        uiState.recentApps.forEach { app ->
+                            RecentAppItem(
+                                app = app,
+                                onClick = { emitIntent(MainUiIntent.AppClick(app.packageName)) },
+                                onLongClick = { emitIntent(MainUiIntent.AppLongClick(app.packageName)) }
+                            )
+                        }
+                    }
                 }
             }
 
@@ -178,7 +187,7 @@ private fun SearchBox(
 
 
 /**
- * 最近应用项
+ * 最近应用项 - 横向滚动卡片
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -189,38 +198,39 @@ private fun RecentAppItem(
 ) {
     Card(
         modifier = Modifier
-            .fillMaxWidth()
+            .width(80.dp)
             .combinedClickable(onClick = onClick, onLongClick = onLongClick),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
         )
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // 应用图标
             androidx.compose.foundation.Image(
                 painter = coil.compose.rememberAsyncImagePainter(app.icon),
                 contentDescription = app.name.toString(),
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(32.dp)
                     .clip(CircleShape)
             )
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // 应用名称
             Text(
                 text = app.name.toString(),
-                style = MaterialTheme.typography.bodyLarge.copy(
+                style = MaterialTheme.typography.bodySmall.copy(
                     fontWeight = FontWeight.Medium
                 ),
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f)
+                textAlign = TextAlign.Center,
+                maxLines = 1
             )
         }
     }
