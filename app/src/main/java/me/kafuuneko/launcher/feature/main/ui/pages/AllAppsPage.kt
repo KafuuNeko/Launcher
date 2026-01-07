@@ -2,7 +2,6 @@ package me.kafuuneko.launcher.feature.main.ui.pages
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,7 +26,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,90 +66,61 @@ fun AllAppsPage(
             )
 
             // 应用列表
-            PullToRefreshBox(
-                isRefreshing = false,
-                onRefresh = { emitIntent(MainUiIntent.RefreshApps) },
-                modifier = Modifier.fillMaxSize()
-            ) {
-                if (uiState.filteredApps.isEmpty()) {
-                    // 空状态
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surface),
-                        contentAlignment = Alignment.Center
+            if (uiState.filteredApps.isEmpty()) {
+                // 空状态
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surface),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Menu,
-                                contentDescription = null,
-                                modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = if (uiState.searchQuery.isEmpty()) {
-                                    "暂无应用"
-                                } else {
-                                    "未找到匹配的应用"
-                                },
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
-                        }
-                    }
-                } else {
-                    // 应用网格
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(4),
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surface),
-                        contentPadding = PaddingValues(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        items(
-                            items = uiState.filteredApps,
-                            key = { it.packageName }
-                        ) { app ->
-                            AppGridItem(
-                                app = app,
-                                onClick = {
-                                    emitIntent(MainUiIntent.AppClick(app.packageName))
-                                },
-                                onLongClick = {
-                                    emitIntent(MainUiIntent.AppLongClick(app.packageName))
-                                }
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Default.Menu,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = if (uiState.searchQuery.isEmpty()) {
+                                "暂无应用"
+                            } else {
+                                "未找到匹配的应用"
+                            },
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
                     }
                 }
-            }
-        }
-
-        // 底部提示
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .padding(16.dp)
-        ) {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f)
-                ),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Text(
-                    text = "上滑返回主页",
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+            } else {
+                // 应用网格
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(4),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surface),
+                    contentPadding = PaddingValues(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(
+                        items = uiState.filteredApps,
+                        key = { it.packageName }
+                    ) { app ->
+                        AppGridItem(
+                            app = app,
+                            onClick = {
+                                emitIntent(MainUiIntent.AppClick(app.packageName))
+                            },
+                            onLongClick = {
+                                emitIntent(MainUiIntent.AppLongClick(app.packageName))
+                            }
+                        )
+                    }
+                }
             }
         }
     }
@@ -167,35 +136,28 @@ private fun AppGridItem(
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
-    Card(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
-        shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        )
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+            .padding(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            androidx.compose.foundation.Image(
-                painter = coil.compose.rememberAsyncImagePainter(app.icon),
-                contentDescription = app.name.toString(),
-                modifier = Modifier.size(48.dp)
-            )
+        androidx.compose.foundation.Image(
+            painter = coil.compose.rememberAsyncImagePainter(app.icon),
+            contentDescription = app.name.toString(),
+            modifier = Modifier.size(48.dp)
+        )
 
-            Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-            Text(
-                text = app.name.toString(),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center,
-                maxLines = 2
-            )
-        }
+        Text(
+            text = app.name.toString(),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+            maxLines = 2
+        )
     }
 }
